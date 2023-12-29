@@ -33,7 +33,6 @@ def image_to_base64(img):
     img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
     return img_base64
 
-
 def adjust_brightness(image, factor=1.5):
     """
     Adjust the brightness of an image by scaling its pixel values.

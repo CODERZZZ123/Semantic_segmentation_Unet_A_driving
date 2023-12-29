@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U-Net Image Segmentation</title>
+    <style>
+        /* Style to make images larger than the container */
+        img {
+            display: block;   /* Remove default inline styling */
+            margin: 0 auto;    /* Center the image */
+        }
+
+        /* Style for loading spinner */
+        .loading-spinner {
+            display: none;    /* Initially hidden */
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto; /* Center the spinner */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>U-Net Image Segmentation</h1>
+    <form action="/segment" method="post" id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" accept=".png, .jpg, .jpeg">
+        <button type="button" onclick="processImage()">Process Image</button>
+    </form>
+    
+    <!-- Image container for original image -->
+    <div id="original-image-container">
+        <h2>Original Image</h2>
+        <div class="loading-spinner" id="loading-spinner"></div>
+        <img id="original-image" alt="Original Image" width="500px">
+    </div>
+
+    <!-- Image container for segmented mask -->
+    <div id="result-container">
+        <h2>Result</h2>
+        <div class="loading-spinner" id="loading-spinner-segmented"></div>
+        <img id="segmented-mask" alt="Segmented Image" width="500px">
+    </div>
+
+    <script>
+        async function processImage() {
+            // ... (same JavaScript code as before)
+            const fileInput = document.getElementById('file-input');
+            const originalImageContainer = document.getElementById('original-image-container');
+            const originalImageElement = document.getElementById('original-image');
+            const resultContainer = document.getElementById('result-container');
+            const segmentedMaskElement = document.getElementById('segmented-mask');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const loadingSpinnerSegmented = document.getElementById('loading-spinner-segmented');
+            
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            // Show loading spinner
+            loadingSpinner.style.display = 'block';
+            loadingSpinnerSegmented.style.display = 'block';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/segment', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                const resultPath = result.segmented_mask_base64;
+                const originalImagePath = result.original_image_base64;
+
+                // Display original image
+                originalImageElement.src = `data:image/png;base64,${originalImagePath}`;
+
+                // Display segmented mask
+                segmentedMaskElement.src = `data:image/png;base64,${resultPath}`;
+
+                // Hide loading spinner
+                loadingSpinner.style.display = 'none';
+                loadingSpinnerSegmented.style.display = 'none';
+
+                // Show image containers
+                originalImageContainer.style.display = 'block';
+                resultContainer.style.display = 'block';
+            } catch (error) {
+                console.error('Error processing image:', error);
+
+                // Hide loading spinner on error
+                loadingSpinner.style.display = 'none';
+                loadingSpinnerSegmented.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
